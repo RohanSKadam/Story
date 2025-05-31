@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/styles.css">
+    <title>Story Generator</title>
+</head>
+<body>
+    <div class="container">
+        <h1>Story Generator</h1>
+        
+        <div class="auth-section">
+            <div class="form-container" id="login-section">
+                <h2>Login</h2>
+                <input type="text" id="login-username" placeholder="Username" required>
+                <input type="password" id="login-password" placeholder="Password" required>
+                <button onclick="login()">Login</button>
+                <p id="login-message" class="message"></p>
+            </div>
+
+            <div class="form-container" id="register-section">
+                <h2>Register</h2>
+                <input type="text" id="register-username" placeholder="Username" required>
+                <input type="password" id="register-password" placeholder="Password" required>
+                <button onclick="register()">Register</button>
+                <p id="register-message" class="message"></p>
+            </div>
+        </div>
+
+        <div class="story-section" id="story-section" style="display:none;">
+            <h2>Generate a Story</h2>
+            <input type="text" id="story-prompt" placeholder="Enter a prompt" required>
+            <button onclick="generateStory()">Generate</button>
+            <p id="story-output" class="story-output"></p>
+            <h3>Your Story History</h3>
+            <div id="story-history" class="story-history"></div>
+            <button onclick="logout()">Logout</button>
+        </div>
+    </div>
+
+    <script>
+        async function login() {
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+            const response = await fetch('/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+            const data = await response.json();
+            document.getElementById('login-message').innerText = data.message || data.error;
+            if (response.ok) {
+                document.getElementById('login-section').style.display = 'none';
+                document.getElementById('story-section').style.display = 'block';
+                getHistory();
+            }
+        }
+
+        async function register() {
+            const username = document.getElementById('register-username').value;
+            const password = document.getElementById('register-password').value;
+            const response = await fetch('/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+            const data = await response.json();
+            document.getElementById('register-message').innerText = data.message || data.error;
+        }
+
+        async function generateStory() {
+            const prompt = document.getElementById('story-prompt').value;
+            const response = await fetch('/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt })
+            });
+            const data = await response.json();
+            document.getElementById('story-output').innerText = data.story || data.error;
+            getHistory();
+        }
+
+        async function getHistory() {
+            const response = await fetch('/history', { method: 'GET' });
+            const data = await response.json();
+            const historyDiv = document.getElementById('story-history');
+            historyDiv.innerHTML = '';
+            data.history.forEach(story => {
+                const storyElement = document.createElement('div');
+                storyElement.innerHTML = `<strong>Prompt:</strong> ${story.prompt}<br><strong>Story:</strong> ${story.story}<hr>`;
+                historyDiv.appendChild(storyElement);
+            });
+        }
+
+        async function logout() {
+            const response = await fetch('/logout', { method: 'POST' });
+            const data = await response.json();
+            alert(data.message);
+            document.getElementById('story-section').style.display = 'none';
+            document.getElementById('login-section').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
