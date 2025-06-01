@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generate Story</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Generate Story</h1>
+        <form id="story-form">
+            <label for="prompt">Prompt</label>
+            <input type="text" id="prompt" placeholder="Enter a prompt" required>
+            <button id="generate-btn" type="submit">Generate Story</button>
+        </form>
+        <div class="story-output"></div>
+        <script>
+            const generateBtn = document.getElementById('generate-btn');
+            const storyForm = document.getElementById('story-form');
+
+            storyForm.addEventListener('submit', async (event) => {
+                event.preventDefault(); // Prevent the default form submission
+
+                const prompt = document.getElementById('prompt').value;
+                const response = await fetch('/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt }),
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    document.querySelector('.story-output').innerHTML = `Error: ${error.message}`;
+                    return;
+                }
+
+                const story = await response.json();
+                document.querySelector('.story-output').innerHTML = story.story;
+            });
+        </script>
+    </div>
+</body>
+</html>
